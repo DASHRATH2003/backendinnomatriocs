@@ -6,10 +6,26 @@ const { auth, adminOnly } = require('../middleware/auth');
 // Get all jobs (public)
 router.get('/', async (req, res) => {
   try {
-    const jobs = await Job.find({ active: true }).sort('-createdAt');
+    console.log('Fetching all jobs...');
+    const jobs = await Job.find().sort('-createdAt');
+    console.log('Found jobs:', jobs);
     res.json(jobs);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error fetching jobs:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get active jobs only (public)
+router.get('/active', async (req, res) => {
+  try {
+    console.log('Fetching active jobs...');
+    const jobs = await Job.find({ active: true }).sort('-createdAt');
+    console.log('Found active jobs:', jobs);
+    res.json(jobs);
+  } catch (error) {
+    console.error('Error fetching active jobs:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
