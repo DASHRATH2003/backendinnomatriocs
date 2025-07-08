@@ -14,17 +14,36 @@ const app = express();
 // Frontend URLs
 const FRONTEND_URLS = [
   'https://frontendinnomatrics.vercel.app',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'https://innomatrics.vercel.app'
 ];
 
 // Middleware
 app.use(cors({
-  origin: FRONTEND_URLS,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (FRONTEND_URLS.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.warn('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
+
 app.use(express.json());
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
+  next();
+});
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/innomatrics', {
@@ -45,8 +64,11 @@ app.use('/api/jobs', jobRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: '❌ Something broke!' });
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    message: err.message || '❌ Something broke!',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // Start Server
