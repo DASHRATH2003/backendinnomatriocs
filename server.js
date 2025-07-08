@@ -11,7 +11,6 @@ const app = express();
 // Frontend URLs - make sure to include all possible frontend URLs
 const FRONTEND_URLS = [
   'https://frontendinnomatrics.vercel.app',
-  'https://innomatrics.vercel.app',
   'http://localhost:3000'
 ];
 
