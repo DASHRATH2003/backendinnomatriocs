@@ -8,31 +8,13 @@ const jobRoutes = require('./routes/jobs');
 
 const app = express();
 
-// Frontend URLs - make sure to include all possible frontend URLs
-const FRONTEND_URLS = [
-  'https://frontendinnomatrics.vercel.app',
-  'http://localhost:3000'
-];
-
-// CORS configuration
+// CORS configuration - Allow all origins in development
 app.use(cors({
-  origin: FRONTEND_URLS,
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
+  credentials: false
 }));
-
-// Add headers for all responses
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (FRONTEND_URLS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  next();
-});
 
 app.use(express.json());
 
@@ -54,7 +36,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/innomatri
 
 // Health check route
 app.get('/', (req, res) => {
-  res.send('✅ Backend server is running');
+  res.json({ status: 'ok', message: '✅ Backend server is running' });
 });
 
 // API routes
@@ -73,5 +55,5 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log('✅ CORS enabled for:', FRONTEND_URLS);
+  console.log('✅ CORS enabled for all origins');
 });
